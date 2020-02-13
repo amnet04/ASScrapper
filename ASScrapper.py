@@ -3,6 +3,7 @@ import csv
 from time import sleep
 from os import path
 import datetime
+import random
 
 
 
@@ -42,10 +43,7 @@ class Scrapper():
         self.headless = headless
         self.wait = wait
 
-        self.open_dom()
-        self.configure_driver()
-        self.get_elements()
-        
+       
 
     def configure_driver(self):
         if self.headless:
@@ -92,11 +90,12 @@ class Scrapper():
 
 
     def get_elements(self):
-        self.main_str["LiCont"]["Elements"] = []
-        self.main_str["ElCont"]["Elements"] = []
-        self.main_str["End"]["Elements"] = self.driver.find_element_by_css_selector('{}'.format(self.main_str["End"]["Dom"]))
         self.main_str["LiCont"]["Elements"] = self.driver.find_elements_by_css_selector('{}'.format(self.main_str["LiCont"]["Dom"]))
+        self.main_str["ElCont"]["Elements"] = []
+        
+        
         if self.main_str["LiCont"]["Elements"] != []:
+            print(self.main_str["LiCont"]["Elements"])
             for element in self.main_str["LiCont"]["Elements"]:
                 self.main_str["ElCont"]["Elements"] += element.find_elements_by_css_selector('{}'.format(self.main_str["ElCont"]["Dom"]))
         
@@ -127,6 +126,7 @@ class Scrapper():
 
 
     def get_navigate(self, data_file):
+        sleep(random.randrange(2+random.random(), 10+random.random()))
         if self.main_str["Next"]["Dom"] != "":
             self.get_elements()
             self.get_data(data_file)
@@ -138,6 +138,7 @@ class Scrapper():
                 print("Data recovery ends")
 
         elif self.main_str["End"]["Elements"]:
+            self.main_str["End"]["Elements"] = self.driver.find_element_by_css_selector('{}'.format(self.main_str["End"]["Dom"]))
             pass
     
         else:
