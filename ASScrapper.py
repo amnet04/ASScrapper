@@ -62,10 +62,6 @@ class Scrapper():
             firefox_profile.set_preference('media.flac.enabled',False)
             self.driver = Firefox(firefox_profile=firefox_profile)
 
-
-        self.driver.get(self.url)
-        self.driver.implicitly_wait(self.wait)
-        
         
     def open_dom(self):
         try:
@@ -95,7 +91,6 @@ class Scrapper():
         
         
         if self.main_str["LiCont"]["Elements"] != []:
-            print(self.main_str["LiCont"]["Elements"])
             for element in self.main_str["LiCont"]["Elements"]:
                 self.main_str["ElCont"]["Elements"] += element.find_elements_by_css_selector('{}'.format(self.main_str["ElCont"]["Dom"]))
         
@@ -126,7 +121,7 @@ class Scrapper():
 
 
     def get_navigate(self, data_file):
-        sleep(random.randrange(2+random.random(), 10+random.random()))
+        sleep(random.randrange(2, 5+int(random.random()*10)))
         if self.main_str["Next"]["Dom"] != "":
             self.get_elements()
             self.get_data(data_file)
@@ -135,7 +130,7 @@ class Scrapper():
                 self.main_str["Next"]["Elements"].click()
                 self.get_navigate(data_file)
             except:
-                print("Data recovery ends")
+                print("Data recovery ends", end = "\r")
 
         elif self.main_str["End"]["Elements"]:
             self.main_str["End"]["Elements"] = self.driver.find_element_by_css_selector('{}'.format(self.main_str["End"]["Dom"]))
