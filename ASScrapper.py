@@ -131,22 +131,22 @@ class Scrapper():
             self.get_elements()
             self.get_data(data_file)
             try:
-                """body = self.driver.find_element_by_css_selector('body')
-                body.send_keys(Keys.PAGE_DOWN)"""
                 self.main_str["Next"]["Elements"] = WebDriverWait(self.driver, 2).until(expected.element_to_be_clickable((By.CSS_SELECTOR, '{}'.format(self.main_str["Next"]["Dom"]))))
-                #ActionChains(self.driver).move_to_element(self.main_str["Next"]["Elements"]).perform()
                 self.main_str["Next"]["Elements"].click()
                 self.get_navigate(data_file)
             except:
                 print("Data recovery ends", end = "\r")
+                self.driver.close()
                 
         elif self.main_str["End"]["Elements"]:
             self.main_str["End"]["Elements"] = self.driver.find_element_by_css_selector(self.main_str["End"]["Dom"])
-            pass
+            self.get_data(data_file)
+            self.driver.close()
     
         else:
            self.get_data(data_file)
-        self.driver.close()
+           self.driver.close()
+        
 
 
     def ChangeProxy(self, ProxyHost ,ProxyPort):
