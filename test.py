@@ -30,15 +30,24 @@ def test_url():
     for url in urls: 
         prv.configure_driver()
         proxy=random.choice(proxy_list)
-        prv.ChangeProxy(proxy["Ip"] ,proxy["Port"])
+        try:
+            prv.ChangeProxy(proxy["Ip"] ,proxy["Port"])
+        except:
+            proxy=random.choice(proxy_list)
+            prv.ChangeProxy(proxy["Ip"] ,proxy["Port"])
         prv.driver.get(url)
         prv.driver.implicitly_wait(random.randrange(1, int(random.random()*10)+2))
         prv.get_elements()
         prv.get_navigate("scrapped/Google.csv")
+
         change_proxy = random.randrange(1,11,1)
         if change_proxy > 8:
             print("cambiando proxy")
             proxy=random.choice(proxy_list)
-            prv.ChangeProxy(proxy["Ip"] ,proxy["Port"])
+            try:
+                prv.ChangeProxy(proxy["Ip"] ,proxy["Port"])
+            except:
+                proxy=random.choice(proxy_list)
+                prv.ChangeProxy(proxy["Ip"] ,proxy["Port"])
         prv.driver.close()
     
