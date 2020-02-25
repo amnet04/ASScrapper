@@ -145,7 +145,8 @@ class Scrapper():
             pass
     
         else:
-           self.get_data(data_file) 
+           self.get_data(data_file)
+        self.driver.close()
 
 
     def ChangeProxy(self, ProxyHost ,ProxyPort):
@@ -155,4 +156,19 @@ class Scrapper():
         self.firefox_profile.set_preference("network.proxy.http_port", int(ProxyPort))
         self.firefox_profile.update_preferences()
         self.driver = Firefox(options=self.options, firefox_profile=self.firefox_profile)
-       
+
+    def ProveProxys(self, proxylist):
+        if proxylist:
+            proxy=random.choice(proxylist)
+            try:
+                self.driver.close()
+                self.driver.configure(self)
+            except:
+                pass
+            try:
+                print("Cambiando proxy")
+                self.ChangeProxy(proxy["Ip"] ,proxy["Port"])
+            except :
+                self.ProveProxys(proxylist)
+            self.driver.get(self.url)
+            

@@ -25,17 +25,13 @@ def test_url():
     
     
     urls = urlsGenerator("'Alphabet Inc'", ['2019-01-01','2020-02-25'])
-    prv =  Scrapper("GoogleNews_2019_01_01","", headless=True, str_folder="examples", str_file="GoogleNews.csv")
+    prv =  Scrapper("GoogleNews_2019_01_01","", headless=False, str_folder="examples", str_file="GoogleNews.csv")
     prv.open_dom()
-    for url in urls: 
+    for url in urls:
+        prv.url = url  
         prv.configure_driver()
-        proxy=random.choice(proxy_list)
-        try:
-            prv.ChangeProxy(proxy["Ip"] ,proxy["Port"])
-        except:
-            proxy=random.choice(proxy_list)
-            prv.ChangeProxy(proxy["Ip"] ,proxy["Port"])
-        prv.driver.get(url)
+        prv.ProveProxys(proxy_list)
+        prv.driver.get(prv.url)
         prv.driver.implicitly_wait(random.randrange(1, int(random.random()*10)+2))
         prv.get_elements()
         prv.get_navigate("scrapped/Google.csv")
@@ -43,11 +39,10 @@ def test_url():
         change_proxy = random.randrange(1,11,1)
         if change_proxy > 8:
             print("cambiando proxy")
-            proxy=random.choice(proxy_list)
-            try:
-                prv.ChangeProxy(proxy["Ip"] ,proxy["Port"])
-            except:
-                proxy=random.choice(proxy_list)
-                prv.ChangeProxy(proxy["Ip"] ,proxy["Port"])
+            prv.ProveProxys(proxy_list)
+            prv.driver.get(prv.url)
+            prv.driver.implicitly_wait(random.randrange(1, int(random.random()*10)+2))
+            prv.get_elements()
+            prv.get_navigate("scrapped/Google.csv")
         prv.driver.close()
     
