@@ -17,6 +17,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver import FirefoxProfile
 from selenium.webdriver.support import expected_conditions as expected
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.common.proxy import Proxy, ProxyType
 
 """logging.basicConfig(filename="scrapper.log",
                     level=logging.DEBUG,
@@ -46,21 +47,25 @@ class Scrapper():
        
 
     def configure_driver(self):
+
+
         if self.headless:
-            options = Options()
-            options.add_argument('-headless')
-            self.driver = Firefox(executable_path='geckodriver', options=options)
+            self.options = Options()
+            self.options.add_argument('--headless')
+            self.firefox_profile = FirefoxProfile()
+            self.driver = Firefox(options=self.options, firefox_profile=self.firefox_profile, executable_path='geckodriver')
         
         
         else:
-            firefox_profile = FirefoxProfile()
-            firefox_profile.set_preference('permissions.default.image', 2)
-            firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', False)
-            firefox_profile.set_preference('media.navigator.video.enabled',False)
-            firefox_profile.set_preference('media.encoder.webm.enabled',False)
-            firefox_profile.set_preference('media.ffmpeg.enabled',False)
-            firefox_profile.set_preference('media.flac.enabled',False)
-            self.driver = Firefox(firefox_profile=firefox_profile)
+            self.options = Options()
+            self.firefox_profile = FirefoxProfile()
+            self.firefox_profile.set_preference('permissions.default.image', 2)
+            self.firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', False)
+            self.firefox_profile.set_preference('media.navigator.video.enabled',False)
+            self.firefox_profile.set_preference('media.encoder.webm.enabled',False)
+            self.firefox_profile.set_preference('media.ffmpeg.enabled',False)
+            self.firefox_profile.set_preference('media.flac.enabled',False)
+            self.driver = Firefox(options=self.options, firefox_profile=self.firefox_profile)
 
         
     def open_dom(self):
@@ -126,15 +131,28 @@ class Scrapper():
             self.get_elements()
             self.get_data(data_file)
             try:
-                self.main_str["Next"]["Elements"] = self.driver.find_element_by_css_selector('{}'.format(self.main_str["Next"]["Dom"]))
+                """body = self.driver.find_element_by_css_selector('body')
+                body.send_keys(Keys.PAGE_DOWN)"""
+                self.main_str["Next"]["Elements"] = WebDriverWait(self.driver, 2).until(expected.element_to_be_clickable((By.CSS_SELECTOR, '{}'.format(self.main_str["Next"]["Dom"]))))
+                #ActionChains(self.driver).move_to_element(self.main_str["Next"]["Elements"]).perform()
                 self.main_str["Next"]["Elements"].click()
                 self.get_navigate(data_file)
             except:
                 print("Data recovery ends", end = "\r")
-
+                
         elif self.main_str["End"]["Elements"]:
-            self.main_str["End"]["Elements"] = self.driver.find_element_by_css_selector('{}'.format(self.main_str["End"]["Dom"]))
+            self.main_str["End"]["Elements"] = self.driver.find_element_by_css_selector(self.main_str["End"]["Dom"])
             pass
     
         else:
            self.get_data(data_file) 
+
+
+    def ChangeProxy(self, ProxyHost ,ProxyPort):
+        "Define Firefox Profile with you ProxyHost and ProxyPort"
+        self.firefox_profile.set_preference("network.proxy.type", 1)
+        self.firefox_profile.set_preference("network.proxy.http", ProxyHost)
+        self.firefox_profile.set_preference("network.proxy.http_port", int(ProxyPort))
+        self.firefox_profile.update_preferences()
+        self.driver = Firefox(options=self.options, firefox_profile=self.firefox_profile)
+       
