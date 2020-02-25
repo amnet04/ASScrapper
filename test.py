@@ -16,33 +16,25 @@ import csv
 
 
 def test_url():
-    proxy_list = []
+    proxylist = []
     with open("scrapped/free-proxy-list.csv", "r") as csvfile:
         reader = csv.DictReader(csvfile, delimiter='\t')
         for row in reader:
             if row["Ip"] != '':
-                proxy_list.append(dict(row))
+                proxylist.append(dict(row))
     
     
     urls = urlsGenerator("'Alphabet Inc'", ['2019-01-01','2020-02-25'])
-    prv =  Scrapper("GoogleNews_2019_01_01","", headless=False, str_folder="examples", str_file="GoogleNews.csv")
+    prv =  Scrapper("GoogleNews_2019_01_01","", headless=False, str_folder="examples", proxy_list = proxylist ,str_file="GoogleNews.csv")
     prv.open_dom()
+    prv.configure_driver()
+
+    
     for url in urls:
-        prv.url = url  
         prv.configure_driver()
-        prv.ProveProxys(proxy_list)
+        prv.url = url  
         prv.driver.get(prv.url)
         prv.driver.implicitly_wait(random.randrange(1, int(random.random()*10)+2))
         prv.get_elements()
         prv.get_navigate("scrapped/Google.csv")
-
-        change_proxy = random.randrange(1,11,1)
-        if change_proxy > 8:
-            print("cambiando proxy")
-            prv.configure_driver()
-            prv.ProveProxys(proxy_list)
-            prv.driver.get(prv.url)
-            prv.driver.implicitly_wait(random.randrange(1, int(random.random()*10)+2))
-            prv.get_elements()
-            prv.get_navigate("scrapped/Google.csv")
     

@@ -32,6 +32,7 @@ class Scrapper():
                  url, 
                  str_folder="", 
                  str_file="",
+                 proxy_list = [],
                  headless= False, 
                  wait=1):
         self.name = name
@@ -41,31 +42,41 @@ class Scrapper():
         self.main_str = {}
         self.data_str = {}
         self.data = []
+        self.proxy_list = proxy_list
         self.headless = headless
         self.wait = wait
 
        
 
     def configure_driver(self):
-
+        try:
+            self.driver.close()
+        except:
+            print("Ya ta cerrado")
 
         if self.headless:
             self.options = Options()
             self.options.add_argument('--headless')
             self.firefox_profile = FirefoxProfile()
+            self.firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
+            self.ChangeProxy(self)
             self.driver = Firefox(options=self.options, firefox_profile=self.firefox_profile, executable_path='geckodriver')
         
         
         else:
             self.options = Options()
             self.firefox_profile = FirefoxProfile()
+            self.firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
             self.firefox_profile.set_preference('permissions.default.image', 2)
             self.firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', False)
             self.firefox_profile.set_preference('media.navigator.video.enabled',False)
             self.firefox_profile.set_preference('media.encoder.webm.enabled',False)
             self.firefox_profile.set_preference('media.ffmpeg.enabled',False)
             self.firefox_profile.set_preference('media.flac.enabled',False)
-            self.driver = Firefox(options=self.options, firefox_profile=self.firefox_profile)
+            self.ChangeProxy()
+            self.driver = Firefox(options=self.options, firefox_profile=self.firefox_profile, executable_path='geckodriver')
+
+        
 
         
     def open_dom(self):
@@ -106,7 +117,8 @@ class Scrapper():
                 writer = csv.DictWriter(datafile, delimiter="\t", fieldnames=list(self.data_str.keys()))
                 writer.writeheader()
             
-        if self.main_str["ElCont"]["Elements"] != []:       
+        if self.main_str["ElCont"]["Elements"] != []: 
+            print(len(self.main_str["ElCont"]["Elements"]), "Elementos encontrados en", self.url)      
             for element in self.main_str["ElCont"]["Elements"]:
                 data_dict = {}
                 for key, selector in self.data_str.items(): 
@@ -135,40 +147,30 @@ class Scrapper():
                 self.main_str["Next"]["Elements"].click()
                 self.get_navigate(data_file)
             except:
-                print("Data recovery ends", end = "\r")
+                print("Data recovery ends")
                 self.driver.close()
                 
         elif self.main_str["End"]["Elements"]:
             self.main_str["End"]["Elements"] = self.driver.find_element_by_css_selector(self.main_str["End"]["Dom"])
             self.get_data(data_file)
+            print("Fin")
             self.driver.close()
     
         else:
            self.get_data(data_file)
+           print("Else")
            self.driver.close()
         
 
 
-    def ChangeProxy(self, ProxyHost ,ProxyPort):
-        "Define Firefox Profile with you ProxyHost and ProxyPort"
-        self.firefox_profile.set_preference("network.proxy.type", 1)
-        self.firefox_profile.set_preference("network.proxy.http", ProxyHost)
-        self.firefox_profile.set_preference("network.proxy.http_port", int(ProxyPort))
-        self.firefox_profile.update_preferences()
-        self.driver = Firefox(options=self.options, firefox_profile=self.firefox_profile)
-
-    def ProveProxys(self, proxylist):
-        if proxylist:
-            proxy=random.choice(proxylist)
-            try:
-                self.driver.close()
-                self.driver.configure(self)
-            except:
-                pass
-            try:
-                print("Cambiando proxy")
-                self.ChangeProxy(proxy["Ip"] ,proxy["Port"])
-            except :
-                self.ProveProxys(proxylist)
-            self.driver.get(self.url)
+    def ChangeProxy(self):
+        if self.proxy_list:
+            proxy = random.choice(self.proxy_list)
+            ProxyHost = proxy["Ip"]
+            ProxyPort = proxy["Port"]
+            self.firefox_profile.set_preference("network.proxy.type", 1)
+            self.firefox_profile.set_preference("network.proxy.http", ProxyHost)
+            self.firefox_profile.set_preference("network.proxy.http_port", int(ProxyPort))
+            print("New Ip:", proxy["Ip"])
+            self.firefox_profile.update_preferences()
             
