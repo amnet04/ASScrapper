@@ -8,7 +8,31 @@ import csv
 import pathlib
 thispath=pathlib.Path(__file__).parent.parent.absolute()
 
-def rotate_url(urls, proxylist):
+def rotate_proxy(prv):
+    
+    try:  
+        prv.driver.get(prv.url)
+    except:
+        prv.DropProxyFromList()
+        prv.driver.close()
+        prv.ChangeProxy()
+        rotate_proxy(prv)
+
+    w_time = random.randrange(1, int(random.random()*10)+2)
+    print("Espera de {}".format(w_time))
+    prv.driver.implicitly_wait(w_time)
+    print("Fin de espera")
+    prv.get_elements()
+    prv.get_navigate("{}/scrapped/Google.csv".format(thispath))
+
+
+def test_url():
+
+    proxylist = proxyRotator()
+    
+    
+    urls = urlsGenerator("'Alphabet Inc'", ['2019-01-01','2020-02-25'])
+
     prv =  Scrapper("GoogleNews_2019_01_01",
                     "", 
                     headless=False, 
@@ -19,33 +43,9 @@ def rotate_url(urls, proxylist):
     prv.configure_driver()
     for url in urls:
         print("URL: ", url)
-        prv.configure_driver()
-        prv.driver.set_page_load_timeout(60)
+        prv.driver.set_page_load_timeout(20)
         prv.url = url
-        try:  
-            prv.driver.get(prv.url)
-        except:
-            print("{} NO sirvio, a otro".format(prv.proxy))
-            prv.driver.close()
-            rotate_url(urls, proxylist)
-
-        prv.driver.implicitly_wait(random.randrange(1, int(random.random()*10)+2))
-        prv.get_elements()
-        prv.get_navigate("{}/scrapped/Google.csv".format(thispath))
-
-
-def test_url():
-
-    proxylist = []
-    with open("{}/{}".format(thispath,"scrapped/free-proxy-list.csv"), "r") as csvfile:
-        reader = csv.DictReader(csvfile, delimiter='\t')
-        for row in reader:
-            if row["Ip"] != '':
-                proxylist.append(dict(row))
-    
-    
-    urls = urlsGenerator("'Alphabet Inc'", ['2019-01-01','2020-02-25'])
-    rotate_url(urls, proxylist)
+        rotate_proxy(prv)
 
 
     

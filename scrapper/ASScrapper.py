@@ -53,12 +53,6 @@ class Scrapper():
        
 
     def configure_driver(self):
-        try:
-            self.driver.close()
-        except:
-            print("Ya ta cerrado")
-
-
         self.firefox_capabilities = DesiredCapabilities.FIREFOX
         if self.proxy_list:
             if len(self.proxy_list) > 1:
@@ -129,7 +123,7 @@ class Scrapper():
                 self.main_str["ElCont"]["Elements"] += element.find_elements_by_css_selector('{}'.format(self.main_str["ElCont"]["Dom"]))
         
         
-    def get_data(self, data_file, limit=0,insidesep=True):
+    def get_data(self, data_file, limit=0,insedesep=True):
         if not path.isfile(data_file):
             with open(data_file, "w") as datafile:
                 writer = csv.DictWriter(datafile, delimiter="\t", fieldnames=list(self.data_str.keys()))
@@ -144,7 +138,7 @@ class Scrapper():
                     data_dict[key] = ""
                     if elements != []:
                         for e in elements:
-                            if insidesep==True:
+                            if insedesep==True:
                                 data_dict[key] += "<e>"+e.text+"</e>"
                             else:
                                 data_dict[key] += e.text
@@ -156,22 +150,18 @@ class Scrapper():
 
         else:
             print ("Element container doesnt find, probablemente nos agarraron")
-            self.driver.close()
-            try:
-                print("{} NO sirvio dentro, se borra".format(self.proxy))
-                self.proxy_list.remove(self.proxy)
-                print("Quedan {}".format(len(self.proxy_list)))
-            except:
-                print("ya se había borrado")
+            self.driver.close()            
+            self.DropProxyFromList()
             self.ChangeProxy()
             self.configure_driver()
             self.driver.get(self.url)
-            self.get_navigate(data_file, limit, insedesep)
+            self.get_navigate(data_file, limit=limit, insedesep=insedesep)
 
     
 
 
     def get_navigate(self, data_file, limit=0,  insedesep=True):
+        print("navegando")
         self.limit += 1
         sleep(random.randrange(2, 5+int(random.random()*10)))
         if self.main_str["Next"]["Dom"] != "":
@@ -179,10 +169,11 @@ class Scrapper():
             self.get_elements()
             self.get_data(data_file, limit, insedesep)
             try:
-                if  limit!=0 and self.limit < limit:
+                if  limit == 0 or  self.limit < limit:
                     self.main_str["Next"]["Elements"] = WebDriverWait(self.driver, 2).until(expected.element_to_be_clickable((By.CSS_SELECTOR, '{}'.format(self.main_str["Next"]["Dom"]))))
                     self.main_str["Next"]["Elements"].click()
                     self.get_navigate(data_file, limit, insedesep)
+
             except:
                 print("Data recovery ends")
                 self.driver.close()
@@ -207,7 +198,7 @@ class Scrapper():
             if len(self.proxy_list) > 1:
 
                 self.proxy = random.choice(self.proxy_list)
-                print("Cambiando proxy a {}",self.proxy["Ip"])
+                print("Cambiando proxy a ",self.proxy["Ip"])
                 self.firefox_capabilities['marionette'] = True
 
                 self.firefox_capabilities['proxy'] = {
@@ -220,7 +211,21 @@ class Scrapper():
                 print("Se acabaron las opciones, pidiendo mas proxys")
                 self.LoadProxyList()
                 self.ChangeProxy()
+            try:
+                self.driver.close()
+            except:
+                print("Ya ta Cerrado")
+            self.driver = Firefox(capabilities=self.firefox_capabilities, options=self.options, firefox_profile=self.firefox_profile, executable_path='geckodriver')
+        
 
     def LoadProxyList(self):
         from ..utilities.freeProxyRotator import proxyRotator
         self.proxy_list = proxyRotator()
+
+    def DropProxyFromList(self):
+        try:
+            print("{} NO sirvio dentro, se borra".format(self.proxy))
+            self.proxy_list.remove(self.proxy)
+            print("Quedan {}".format(len(self.proxy_list)))
+        except:
+            print("ya se había borrado")
