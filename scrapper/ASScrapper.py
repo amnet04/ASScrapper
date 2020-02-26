@@ -80,13 +80,15 @@ class Scrapper():
             self.options = Options()
             self.firefox_profile = FirefoxProfile()
             self.firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
-            self.firefox_profile.set_preference('permissions.default.image', 2)
+            self.firefox_profile.set_preference('permissions.default.image',2)
+            self.firefox_profile.set_preference("permissions.default.stylesheet",2)
             self.firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', False)
             self.firefox_profile.set_preference('media.navigator.video.enabled',False)
             self.firefox_profile.set_preference('media.encoder.webm.enabled',False)
             self.firefox_profile.set_preference('media.ffmpeg.enabled',False)
-            self.firefox_profile.set_preference('media.flac.enabled',False)          
-            self.driver = Firefox(capabilities=self.firefox_capabilities,options=self.options, firefox_profile=self.firefox_profile, executable_path='geckodriver')
+            self.firefox_profile.set_preference('media.flac.enabled',False)
+            self.firefox_profile.update_preferences()          
+            self.driver = Firefox(capabilities=self.firefox_capabilities, options=self.options, firefox_profile=self.firefox_profile, executable_path='geckodriver')
 
         
 
@@ -113,7 +115,8 @@ class Scrapper():
 
 
 
-    def get_elements(self):
+    def get_elements(self, limit=0, insedesep=True):
+        WebDriverWait(self.driver, 10).until(expected.visibility_of_element_located((By.CSS_SELECTOR, '{}'.format(self.main_str["LiCont"]["Dom"]))))
         self.main_str["LiCont"]["Elements"] = self.driver.find_elements_by_css_selector('{}'.format(self.main_str["LiCont"]["Dom"]))
         self.main_str["ElCont"]["Elements"] = []
         
@@ -122,6 +125,16 @@ class Scrapper():
             for element in self.main_str["LiCont"]["Elements"]:
                 self.main_str["ElCont"]["Elements"] += element.find_elements_by_css_selector('{}'.format(self.main_str["ElCont"]["Dom"]))
         
+        else:
+            print ("Element container doesnt find, probablemente nos agarraron")
+            self.driver.quit()            
+            self.DropProxyFromList()
+            self.ChangeProxy()
+            self.configure_driver()
+            self.driver.get(self.url)
+            self.get_navigate(data_file, limit=limit, insedesep=insedesep)
+
+
         
     def get_data(self, data_file, limit=0,insedesep=True):
         if not path.isfile(data_file):
@@ -150,7 +163,7 @@ class Scrapper():
 
         else:
             print ("Element container doesnt find, probablemente nos agarraron")
-            self.driver.close()            
+            self.driver.quit()            
             self.DropProxyFromList()
             self.ChangeProxy()
             self.configure_driver()
@@ -166,7 +179,7 @@ class Scrapper():
         sleep(random.randrange(2, 5+int(random.random()*10)))
         if self.main_str["Next"]["Dom"] != "":
             print("Chequeo de límites", self.limit, limit)
-            self.get_elements()
+            self.get_elements(limit=limit,  insedesep=insedesep)
             self.get_data(data_file, limit, insedesep)
             try:
                 if  limit == 0 or  self.limit < limit:
@@ -176,18 +189,18 @@ class Scrapper():
 
             except:
                 print("Data recovery ends")
-                self.driver.close()
+                self.driver.quit()
                 
         elif self.main_str["End"]["Elements"]:
             self.main_str["End"]["Elements"] = self.driver.find_element_by_css_selector(self.main_str["End"]["Dom"])
             self.get_data(data_file, limit, insedesep)
             print("Fin")
-            self.driver.close()
+            self.driver.quit()
     
         else:
            self.get_data(data_file, limit, insedesep)
            print("Else")
-           self.driver.close()
+           self.driver.quit()
         
 
 
@@ -212,10 +225,10 @@ class Scrapper():
                 self.LoadProxyList()
                 self.ChangeProxy()
             try:
-                self.driver.close()
+                self.driver.quit()
             except:
                 print("Ya ta Cerrado")
-            self.driver = Firefox(capabilities=self.firefox_capabilities, options=self.options, firefox_profile=self.firefox_profile, executable_path='geckodriver')
+            self.driver = Firefox(capabilities=self.firefox_capabilities, options=self.options, firefox_profile=self.firefox_profile)
         
 
     def LoadProxyList(self):
@@ -224,8 +237,8 @@ class Scrapper():
 
     def DropProxyFromList(self):
         try:
-            print("{} NO sirvio dentro, se borra".format(self.proxy))
+            print("{} NO sirvio dentro, se borra".format(self.proxy["Ip"]))
             self.proxy_list.remove(self.proxy)
-            print("Quedan {}".format(len(self.proxy_list)))
         except:
             print("ya se había borrado")
+        print("Quedan {}".format(len(self.proxy_list)))

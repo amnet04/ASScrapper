@@ -10,20 +10,30 @@ thispath=pathlib.Path(__file__).parent.parent.absolute()
 
 def rotate_proxy(prv):
     
+    try:
+        prv.driver.quit()
+    except:
+        print("Ya taba cerrao")
+
+    prv.configure_driver()
+    prv.driver.set_page_load_timeout(35)
     try:  
         prv.driver.get(prv.url)
+        print("opteniendo elementos")
+        prv.get_elements()
+        w_time = random.randrange(1, int(random.random()*10)+2)
+        print("Espera de {}".format(w_time))
+        prv.driver.implicitly_wait(w_time)
+        print("Fin de espera")
+        prv.get_navigate("{}/scrapped/Google.csv".format(thispath))
     except:
+        print("Tiempo de espera agotado")
         prv.DropProxyFromList()
-        prv.driver.close()
+        prv.driver.quit()
         prv.ChangeProxy()
         rotate_proxy(prv)
 
-    w_time = random.randrange(1, int(random.random()*10)+2)
-    print("Espera de {}".format(w_time))
-    prv.driver.implicitly_wait(w_time)
-    print("Fin de espera")
-    prv.get_elements()
-    prv.get_navigate("{}/scrapped/Google.csv".format(thispath))
+    
 
 
 def test_url():
@@ -40,10 +50,9 @@ def test_url():
                     proxy_list = proxylist,
                     str_file="GoogleNews.csv")
     prv.open_dom()
-    prv.configure_driver()
+
     for url in urls:
         print("URL: ", url)
-        prv.driver.set_page_load_timeout(20)
         prv.url = url
         rotate_proxy(prv)
 
