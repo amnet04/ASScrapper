@@ -10,6 +10,7 @@ import random
 # Selenium
 import selenium.common.exceptions
 from selenium.webdriver import Firefox
+from selenium.webdriver import DesiredCapabilities
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
@@ -22,6 +23,9 @@ from selenium.webdriver.common.proxy import Proxy, ProxyType
 """logging.basicConfig(filename="scrapper.log",
                     level=logging.DEBUG,
                     format='%(asctime)s - %(message)s')"""
+
+import pathlib
+thispath=pathlib.Path(__file__).parent.parent.absolute()
 
 
 class Scrapper():
@@ -45,7 +49,7 @@ class Scrapper():
         self.proxy_list = proxy_list
         self.headless = headless
         self.wait = wait
-
+        self.limit = 0
        
 
     def configure_driver(self):
@@ -54,13 +58,28 @@ class Scrapper():
         except:
             print("Ya ta cerrado")
 
+
+        self.firefox_capabilities = DesiredCapabilities.FIREFOX
+        if self.proxy_list:
+            if len(self.proxy_list) > 1:
+
+                self.proxy = random.choice(self.proxy_list)
+                self.proxy_list.remove(self.proxy)
+                self.firefox_capabilities['marionette'] = True
+
+                self.firefox_capabilities['proxy'] = {
+                    "proxyType": "MANUAL",
+                    "httpProxy": "{}:{}".format(self.proxy["Ip"],self.proxy["Port"]),
+                    "ftpProxy": "{}:{}".format(self.proxy["Ip"],self.proxy["Port"]),
+                    "sslProxy": "{}:{}".format(self.proxy["Ip"],self.proxy["Port"])
+                }
+
         if self.headless:
             self.options = Options()
             self.options.add_argument('--headless')
             self.firefox_profile = FirefoxProfile()
             self.firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
-            self.ChangeProxy(self)
-            self.driver = Firefox(options=self.options, firefox_profile=self.firefox_profile, executable_path='geckodriver')
+            self.driver = Firefox(capabilities=self.firefox_capabilities, options=self.options, firefox_profile=self.firefox_profile, executable_path='geckodriver')
         
         
         else:
@@ -72,9 +91,8 @@ class Scrapper():
             self.firefox_profile.set_preference('media.navigator.video.enabled',False)
             self.firefox_profile.set_preference('media.encoder.webm.enabled',False)
             self.firefox_profile.set_preference('media.ffmpeg.enabled',False)
-            self.firefox_profile.set_preference('media.flac.enabled',False)
-            self.ChangeProxy()
-            self.driver = Firefox(options=self.options, firefox_profile=self.firefox_profile, executable_path='geckodriver')
+            self.firefox_profile.set_preference('media.flac.enabled',False)          
+            self.driver = Firefox(capabilities=self.firefox_capabilities,options=self.options, firefox_profile=self.firefox_profile, executable_path='geckodriver')
 
         
 
@@ -111,7 +129,7 @@ class Scrapper():
                 self.main_str["ElCont"]["Elements"] += element.find_elements_by_css_selector('{}'.format(self.main_str["ElCont"]["Dom"]))
         
         
-    def get_data(self, data_file):
+    def get_data(self, data_file, insidesep=True):
         if not path.isfile(data_file):
             with open(data_file, "w") as datafile:
                 writer = csv.DictWriter(datafile, delimiter="\t", fieldnames=list(self.data_str.keys()))
@@ -126,33 +144,52 @@ class Scrapper():
                     data_dict[key] = ""
                     if elements != []:
                         for e in elements:
-                            data_dict[key] += "<e>"+e.text+"</e>"
+                            if insidesep==True:
+                                data_dict[key] += "<e>"+e.text+"</e>"
+                            else:
+                                data_dict[key] += e.text
                 
                 with open(data_file, "a") as datafile:
-                    writer = csv.DictWriter(datafile, delimiter="\t", fieldnames=list(self.data_str.keys()))
-                    writer.writerow(data_dict)
+                    if "".join(list(data_dict.values())) != "":
+                        writer = csv.DictWriter(datafile, delimiter="\t", fieldnames=list(self.data_str.keys()))
+                        writer.writerow(data_dict)
 
         else:
-            raise("Element container doesnt find")
+            print ("Element container doesnt find, probablemente nos agarraron")
+            self.driver.close()
+            try:
+                print("{} NO sirvio dentro, se borra".format(self.proxy))
+                self.proxy_list.remove(self.proxy)
+                print("Quedan {}".format(len(self.proxy_list)))
+            except:
+                print("ya se había borrado")
+            self.ChangeProxy()
+            self.configure_driver()
+            self.get(self.url)
+            self.get_navigate()
+
     
 
 
-    def get_navigate(self, data_file):
+    def get_navigate(self, data_file, limit=0,  insedesep=True):
+        self.limit += 1
         sleep(random.randrange(2, 5+int(random.random()*10)))
         if self.main_str["Next"]["Dom"] != "":
+            print("Chequeo de límites", self.limit, limit)
             self.get_elements()
-            self.get_data(data_file)
+            self.get_data(data_file, insedesep)
             try:
-                self.main_str["Next"]["Elements"] = WebDriverWait(self.driver, 2).until(expected.element_to_be_clickable((By.CSS_SELECTOR, '{}'.format(self.main_str["Next"]["Dom"]))))
-                self.main_str["Next"]["Elements"].click()
-                self.get_navigate(data_file)
+                if  limit!=0 and self.limit < limit:
+                    self.main_str["Next"]["Elements"] = WebDriverWait(self.driver, 2).until(expected.element_to_be_clickable((By.CSS_SELECTOR, '{}'.format(self.main_str["Next"]["Dom"]))))
+                    self.main_str["Next"]["Elements"].click()
+                    self.get_navigate(data_file, limit, insedesep)
             except:
                 print("Data recovery ends")
                 self.driver.close()
                 
         elif self.main_str["End"]["Elements"]:
             self.main_str["End"]["Elements"] = self.driver.find_element_by_css_selector(self.main_str["End"]["Dom"])
-            self.get_data(data_file)
+            self.get_data(data_file, insedesep)
             print("Fin")
             self.driver.close()
     
@@ -164,13 +201,26 @@ class Scrapper():
 
 
     def ChangeProxy(self):
+        
+        self.limit = 0
         if self.proxy_list:
-            proxy = random.choice(self.proxy_list)
-            ProxyHost = proxy["Ip"]
-            ProxyPort = proxy["Port"]
-            self.firefox_profile.set_preference("network.proxy.type", 1)
-            self.firefox_profile.set_preference("network.proxy.http", ProxyHost)
-            self.firefox_profile.set_preference("network.proxy.http_port", int(ProxyPort))
-            print("New Ip:", proxy["Ip"])
-            self.firefox_profile.update_preferences()
-            
+            if len(self.proxy_list) > 1:
+
+                self.proxy = random.choice(self.proxy_list)
+                print("Cambiando proxy a {}",self.proxy["Ip"])
+                self.firefox_capabilities['marionette'] = True
+
+                self.firefox_capabilities['proxy'] = {
+                    "proxyType": "MANUAL",
+                    "httpProxy": "{}:{}".format(self.proxy["Ip"],self.proxy["Port"]),
+                    "ftpProxy": "{}:{}".format(self.proxy["Ip"],self.proxy["Port"]),
+                    "sslProxy": "{}:{}".format(self.proxy["Ip"],self.proxy["Port"])
+                }
+            else:
+                print("Se acabaron las opciones, pidiendo mas proxys")
+                self.LoadProxyList()
+                self.ChangeProxy()
+
+    def LoadProxyList(self):
+        from ..utilities.freeProxyRotator import proxyRotator
+        self.proxy_list = proxyRotator()

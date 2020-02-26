@@ -32,7 +32,7 @@ def urlsGenerator(stock,window):
         f_name += p + "_"
     stk_str = stk_str[:-1]
     
-    file_urls = open('urls_'+f_name+'.txt', 'w')
+    #file_urls = open('urls_'+f_name+'.txt', 'w')
     
     #inicio = date.fromisoformat(window[0])
     #final = date.fromisoformat(window[1])
@@ -48,7 +48,7 @@ def urlsGenerator(stock,window):
         
         url = "https://www.google.com/search?q=%22" + stk_str +"%22&tbs=cdr%3A1%2Ccd_min%3A"+ dm + "%2F" + dd + "%2F" + dy + "%2Ccd_max%3A" + dm+ "%2F" + dd + "%2F" + dy + "&tbm=nws"
         urls.append(url)
-        file_urls.write(url+'\n')
+        """file_urls.write(url+'\n')"""
         
         siguiente = siguiente + datetime.timedelta(days=1)
         
@@ -56,6 +56,6 @@ def urlsGenerator(stock,window):
         dm = str(siguiente).split("-")[1]
         dd = str(siguiente).split("-")[2]
                  
-    file_urls.close()
+    """file_urls.close()"""
     
     return urls
