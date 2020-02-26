@@ -129,7 +129,7 @@ class Scrapper():
                 self.main_str["ElCont"]["Elements"] += element.find_elements_by_css_selector('{}'.format(self.main_str["ElCont"]["Dom"]))
         
         
-    def get_data(self, data_file, insidesep=True):
+    def get_data(self, data_file, limit=0,insidesep=True):
         if not path.isfile(data_file):
             with open(data_file, "w") as datafile:
                 writer = csv.DictWriter(datafile, delimiter="\t", fieldnames=list(self.data_str.keys()))
@@ -165,8 +165,8 @@ class Scrapper():
                 print("ya se había borrado")
             self.ChangeProxy()
             self.configure_driver()
-            self.get(self.url)
-            self.get_navigate()
+            self.driver.get(self.url)
+            self.get_navigate(data_file, limit, insedesep)
 
     
 
@@ -177,7 +177,7 @@ class Scrapper():
         if self.main_str["Next"]["Dom"] != "":
             print("Chequeo de límites", self.limit, limit)
             self.get_elements()
-            self.get_data(data_file, insedesep)
+            self.get_data(data_file, limit, insedesep)
             try:
                 if  limit!=0 and self.limit < limit:
                     self.main_str["Next"]["Elements"] = WebDriverWait(self.driver, 2).until(expected.element_to_be_clickable((By.CSS_SELECTOR, '{}'.format(self.main_str["Next"]["Dom"]))))
@@ -189,12 +189,12 @@ class Scrapper():
                 
         elif self.main_str["End"]["Elements"]:
             self.main_str["End"]["Elements"] = self.driver.find_element_by_css_selector(self.main_str["End"]["Dom"])
-            self.get_data(data_file, insedesep)
+            self.get_data(data_file, limit, insedesep)
             print("Fin")
             self.driver.close()
     
         else:
-           self.get_data(data_file)
+           self.get_data(data_file, limit, insedesep)
            print("Else")
            self.driver.close()
         
