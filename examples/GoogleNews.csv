@@ -3,6 +3,7 @@ LiCont	div.mw div#center_col
 ElCont	div.g
 Next	a#pnnext
 End	div#extrares
+Captcha	form#captcha-form
 Source	div.slp span.xQ82C.e8fRJf
 Date	div.slp span.f.nsa.fwzPFf
 HeadLine	div.gG0TJc h3.r.dO0Ag

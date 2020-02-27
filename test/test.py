@@ -1,13 +1,26 @@
-from ..scrapper.ASScrapper import Scrapper
-from ..utilities.urlsGoogleNewsGenerator import urlsGenerator
-from ..utilities.freeProxyRotator import proxyRotator
 import pytest
 import random
 import csv
 
+#from ..scrapper.ASScrapper import Scrapper
+from ..scrapper.asc import Scrapper
+from ..utilities.urlsGoogleNewsGenerator import urlsGenerator
+
+
 import pathlib
+
+# Configure files
 thispath=pathlib.Path(__file__).parent.parent.absolute()
 
+def test():
+    prv = Scrapper("Prv", 
+                   [{"URL":"https://www.google.com/search?q=coronavirus&tbm=nws","PARAM":"Coronavirus"},
+                    {"URL":"https://www.google.com/search?q=coronavirus&tbm=nws","PARAM":"Coronavirus"}], 
+                   "/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/free-proxy-list-dot_net.csv",
+                   proxy = {"url":"https://free-proxy-list.net/", 
+                            "str_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/free-proxy-list-dot_net.csv",
+                            "out_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/free-proxy-list.csv"} )
+"""
 def rotate_proxy(prv):
     
     try:
@@ -55,7 +68,7 @@ def test_url():
         print("URL: ", url)
         prv.url = url
         rotate_proxy(prv)
-
+"""
 
     
     

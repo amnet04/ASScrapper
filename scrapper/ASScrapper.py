@@ -100,10 +100,10 @@ class Scrapper():
                 data_str = csv.DictReader(csvfile, delimiter="\t")
                 if data_str.fieldnames == ["Data", "Dom"]:
                     data_str = [dict(x) for x in list(data_str)]
-                    if [x["Data"] for x in data_str[0:4]] == ["LiCont", "ElCont", "Next", "End"]: 
-                        for data in data_str[0:4]:
+                    if [x["Data"] for x in data_str[0:5]] == ["LiCont", "ElCont", "Next", "End", "Captcha"]: 
+                        for data in data_str[0:5]:
                             self.main_str[data["Data"]] = {"Dom":data["Dom"]}
-                        for data in data_str[4:]:
+                        for data in data_str[5:]:
                             self.data_str[data["Data"]] = data["Dom"]
                     else:
                         raise ValueError("The first 4 rows must be: 'LiCont', 'ElCont', 'Next', and 'End'")
@@ -116,6 +116,7 @@ class Scrapper():
 
 
     def get_elements(self, limit=0, insedesep=True):
+
         WebDriverWait(self.driver, 10).until(expected.visibility_of_element_located((By.CSS_SELECTOR, '{}'.format(self.main_str["LiCont"]["Dom"]))))
         self.main_str["LiCont"]["Elements"] = self.driver.find_elements_by_css_selector('{}'.format(self.main_str["LiCont"]["Dom"]))
         self.main_str["ElCont"]["Elements"] = []

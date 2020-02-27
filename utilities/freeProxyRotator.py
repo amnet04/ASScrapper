@@ -1,42 +1,87 @@
 import random
 import csv
+from tempfile import NamedTemporaryFile
+import shutil
+
+from ..utilities.dom import dom
 from ..scrapper.ASScrapper import Scrapper
 
 import pathlib
 thispath=pathlib.Path(__file__).parent.parent.absolute()
 
-def proxyRotator():
+FILE = "{}/{}".format(thispath,"scrapped/free-proxy-list.csv")
 
-	url = "https://free-proxy-list.net/"
-	proxy_scrapper =  Scrapper("free-proxy-list",
-					 url, 
-					 headless=True, 
-					 str_folder="{}/{}".format(thispath,"examples"), 
-					 str_file="free-proxy-list-dot_net.csv")
+class scrappedProxyList():
 
-	filename = "{}/{}".format(thispath,"scrapped/free-proxy-list.csv")
-	
-	try:
-		with open(filename, "w") as w:
-			w.write("Ip\tPort\tHttps\n")
+	def __init__(self, url,strc_file, data_file, headless=True, max_next=0):
+		print("\n ************************** Obteniendo listado de proxies ************* \n")
+		
+		dom_strc = dom(strc_file, ["Ip", "Port", "Https", "Country", "Anonymity"])
+		self.data_str = dom_strc.data_str
+		self.url = url
+		self.strc_file = strc_file
+		self.data_file = data_file
+		self.headless = headless
+		self.max_next = max_next
+		del dom_strc
 
-	except IOError as e:
-		raise(e)
+		self.scrapProxyLits()
+		self.list = self.getUtilProxies()
+		print("\n ************************** Listado de proxies obtenido *************** \n")
+		
+
+	def scrapProxyLits(self):
+		print("************************** Scrapeando proxys")
+		self.proxy_scrapper = Scrapper("free-proxy-list",
+										self.url, 
+					 					headless=self.headless, 
+					 					str_folder="{}/{}".format(thispath,"examples"), 
+					 					str_file="free-proxy-list-dot_net.csv")
+
+		try:
+			with open(FILE, "w") as w:
+				w.write("Ip\tPort\tHttps\tCountry\tAnonymity\tFunctionality\n")
+
+		except IOError as e:
+			raise(e)
+
+		self.proxy_scrapper.open_dom()
+		self.proxy_scrapper.configure_driver()
+		self.proxy_scrapper.driver.get(self.url)
+		self.proxy_scrapper.get_elements()
+
+		self.proxy_scrapper.get_navigate(FILE, 
+						limit = 1, 
+						insedesep=False)
+		self.proxy_scrapper.driver.close()
+		print("**************************  Fin del scrap de proxys")
 
 
-	proxy_scrapper.open_dom()
-	proxy_scrapper.configure_driver()
-	proxy_scrapper.driver.get(url)
-	proxy_scrapper.get_elements()
+	def getUtilProxies(self):
+		print("************************** Obteniendo proxys váldos")
+		fields = ['Ip', 'Port', 'Https', 'Country', 'Anonymity', 'Functionality']
+		with open("/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/free-proxy-list.csv", 'r') as csvfile:
+			reader = csv.DictReader(csvfile, delimiter="\t")
+			ProxiList = [dict(a) for a in reader]
+			utilProxiList = list(filter(lambda x : x["Functionality"] not in ["TimeOut","SomethingGoesWrong"], ProxiList))
+			return utilProxiList
+		print("************************** Proxies válidos obtenido")
 
-	proxy_scrapper.get_navigate("{}/{}".format(thispath,"scrapped/free-proxy-list.csv"), 
-					limit = 3, 
-					insedesep=False)
-	proxy_scrapper.driver.close()
+	def modificateFunctionality(self, proxy, functionality):
+		print("************************** Modificando estado del proxy: {}".format(proxy["Ip"]))
+		tempfile = NamedTemporaryFile(mode='w', delete=False)
 
-	with open(filename, "r") as csvfile:
-		proxys= csv.DictReader(csvfile, delimiter="\t")
-		proxy_list = [dict(x) for x in list(proxys)]
+		fields = ['Ip', 'Port', 'Https', 'Country', 'Anonymity', 'Functionality']
 
-	return proxy_list
+		with open("/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/free-proxy-list.csv", 'r') as csvfile, tempfile:
+			reader = csv.DictReader(csvfile, fieldnames=fields, delimiter="\t")
+			writer = csv.DictWriter(tempfile, fieldnames=fields, delimiter="\t")
+			for row in reader:
+				#print([row['Ip'], row['Port']], [Ip, '{}'.format(Port)], [row['Ip'], row['Port']] == [Ip, '{}'.format(Port)])
+				if [row['Ip'], row['Port']] == [proxy["Ip"], proxy["Port"]]:
+					print("Cachada")
+					row['Functionality'] = functionality
+				writer.writerow(row)
 
+		shutil.move(tempfile.name, "/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/free-proxy-list.csv")
+		print("************************** Estado del proxy: {} modificado ".format(proxy["Ip"]))

@@ -23,6 +23,7 @@ def urlsGenerator(stock,window):
     import datetime
     
     urls = []
+    parameters = []
     
     stk = stock.split(' ')
     stk_str = ""
@@ -47,7 +48,8 @@ def urlsGenerator(stock,window):
     while(siguiente != final):
         
         url = "https://www.google.com/search?q=%22" + stk_str +"%22&tbs=cdr%3A1%2Ccd_min%3A"+ dm + "%2F" + dd + "%2F" + dy + "%2Ccd_max%3A" + dm+ "%2F" + dd + "%2F" + dy + "&tbm=nws"
-        urls.append(url)
+        parameters = "google_{}_{}_{}".format(dd,dm,dy)
+        urls.append({"PARAM":parameters,"URL":url})
         """file_urls.write(url+'\n')"""
         
         siguiente = siguiente + datetime.timedelta(days=1)
@@ -56,6 +58,6 @@ def urlsGenerator(stock,window):
         dm = str(siguiente).split("-")[1]
         dd = str(siguiente).split("-")[2]
                  
-    """file_urls.close()"""
-    
+        
     return urls
+
