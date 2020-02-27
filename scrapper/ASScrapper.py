@@ -117,7 +117,8 @@ class Scrapper():
 
     def get_elements(self, limit=0, insedesep=True):
 
-        WebDriverWait(self.driver, 10).until(expected.visibility_of_element_located((By.CSS_SELECTOR, '{}'.format(self.main_str["LiCont"]["Dom"]))))
+        print(self.main_str["LiCont"]["Dom"])
+        WebDriverWait(self.driver, 30).until(expected.visibility_of_element_located((By.CSS_SELECTOR, '{}'.format(self.main_str["LiCont"]["Dom"]))))
         self.main_str["LiCont"]["Elements"] = self.driver.find_elements_by_css_selector('{}'.format(self.main_str["LiCont"]["Dom"]))
         self.main_str["ElCont"]["Elements"] = []
         
@@ -183,7 +184,7 @@ class Scrapper():
             self.get_elements(limit=limit,  insedesep=insedesep)
             self.get_data(data_file, limit, insedesep)
             try:
-                if  limit == 0 or  self.limit < limit:
+                if  limit == 0 or  self.limit < limit :
                     self.main_str["Next"]["Elements"] = WebDriverWait(self.driver, 2).until(expected.element_to_be_clickable((By.CSS_SELECTOR, '{}'.format(self.main_str["Next"]["Dom"]))))
                     self.main_str["Next"]["Elements"].click()
                     self.get_navigate(data_file, limit, insedesep)
@@ -198,7 +199,7 @@ class Scrapper():
             print("Fin")
             self.driver.quit()
     
-        else:
+        else :
            self.get_data(data_file, limit, insedesep)
            print("Else")
            self.driver.quit()

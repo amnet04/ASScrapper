@@ -16,7 +16,7 @@ class scrappedProxyList():
 	def __init__(self, url,strc_file, data_file, headless=True, max_next=0):
 		print("\n ************************** Obteniendo listado de proxies ************* \n")
 		
-		dom_strc = dom(strc_file, ["Ip", "Port", "Https", "Country", "Anonymity"])
+		dom_strc = dom(strc_file, ["Ip", "Port", "Country", "Anonymity"])
 		self.data_str = dom_strc.data_str
 		self.url = url
 		self.strc_file = strc_file
@@ -36,10 +36,10 @@ class scrappedProxyList():
 										self.url, 
 					 					headless=self.headless, 
 					 					str_folder="{}/{}".format(thispath,"examples"), 
-					 					str_file="free-proxy-list-dot_net.csv")
-
+					 					str_file="proxynova.csv")
+		print("Recordar que str_file esta quemado")
 		try:
-			with open(FILE, "w") as w:
+			with open(self.data_file, "w") as w:
 				w.write("Ip\tPort\tHttps\tCountry\tAnonymity\tFunctionality\n")
 
 		except IOError as e:
@@ -50,11 +50,13 @@ class scrappedProxyList():
 		self.proxy_scrapper.driver.get(self.url)
 		self.proxy_scrapper.get_elements()
 
-		self.proxy_scrapper.get_navigate(FILE, 
+		self.proxy_scrapper.get_navigate(self.data_file, 
 						limit = 1, 
 						insedesep=False)
+		
 		self.proxy_scrapper.driver.close()
 		print("**************************  Fin del scrap de proxys")
+		self.proxy_scrapper.driver.quit()
 
 
 	def getUtilProxies(self):

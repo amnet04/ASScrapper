@@ -12,14 +12,22 @@ import pathlib
 # Configure files
 thispath=pathlib.Path(__file__).parent.parent.absolute()
 
+proxy_list1 = {"url":"https://free-proxy-list.net/", 
+                            "str_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/free-proxy-list-dot_net.csv",
+                            "out_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/free-proxy-list.csv"}
+
+proxy_list2 = {"url":"https://www.proxynova.com/proxy-server-list/elite-proxies/", 
+                            "str_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/proxynova.csv",
+                            "out_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/proxynova.csv"} 
+
 def test():
+    print("\n\n")
     prv = Scrapper("Prv", 
                    [{"URL":"https://www.google.com/search?q=coronavirus&tbm=nws","PARAM":"Coronavirus"},
-                    {"URL":"https://www.google.com/search?q=coronavirus&tbm=nws","PARAM":"Coronavirus"}], 
-                   "/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/free-proxy-list-dot_net.csv",
-                   proxy = {"url":"https://free-proxy-list.net/", 
-                            "str_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/free-proxy-list-dot_net.csv",
-                            "out_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/free-proxy-list.csv"} )
+                    {"URL":"https://www.google.com/search?q='Alvaro Uribe'&tbm=nws","PARAM":"Alvaro Uribe"}], 
+                   "/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/GoogleNews.csv",
+                   proxy = False,
+                   max_nexts = 3)
 """
 def rotate_proxy(prv):
     
