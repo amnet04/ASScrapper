@@ -4,12 +4,12 @@ from tempfile import NamedTemporaryFile
 import shutil
 
 from ..utilities.dom import dom
-from ..scrapper.ASScrapper import Scrapper
+from ..scrapper.asscrapper import Scrapper
 
 import pathlib
 thispath=pathlib.Path(__file__).parent.parent.absolute()
 
-FILE = "{}/{}".format(thispath,"scrapped/free-proxy-list.csv")
+FILE = "{}/{}".format(thispath,"proxies")
 
 class scrappedProxyList():
 
