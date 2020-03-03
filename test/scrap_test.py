@@ -3,9 +3,9 @@ import random
 import csv
 
 #from ..scrapper.ASScrapper import Scrapper
-from ..scrapper.asc import Scrapper
+from ..scrapper.asscrapper import Scrapper
 from ..utilities.urlsGoogleNewsGenerator import urlsGenerator
-
+from ..utilities.freeProxyRotator import scrappedProxyList
 
 import pathlib
 
@@ -16,11 +16,23 @@ proxy_list1 = {"url":"https://free-proxy-list.net/",
                             "str_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/free-proxy-list-dot_net.csv",
                             "out_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/free-proxy-list.csv"}
 
-proxy_list2 = {"url":"https://www.proxynova.com/proxy-server-list/elite-proxies/", 
-                            "str_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/proxynova.csv",
-                            "out_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/proxynova.csv"} 
+proxy_list2 = {"url":"https://www.proxynova.com/proxy-server-list/elite-proxies", 
+                "str_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/proxynova.csv",
+                "out_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/proxynova.csv"} 
 
 def test():
+    proxylist = scrappedProxyList(
+        [{"URL":"https://www.proxynova.com/proxy-server-list/elite-proxies/", "PARAM":"proxynova"}],
+        "/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/proxynova.csv",
+        "/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/",
+        max_nexts=0
+        ) 
+
+    print(proxylist.getUtilProxies())
+
+
+
+"""
     print("\n\n")
     prv = Scrapper("AlphabetINC", 
                    [{"URL":"https://www.google.com/search?q=coronavirus&tbm=nws","PARAM":"Coronavirus"},
@@ -28,7 +40,7 @@ def test():
                    "/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/GoogleNews.csv",
                    proxy = False,
                    max_nexts = 3)
-"""
+
 def rotate_proxy(prv):
     
     try:

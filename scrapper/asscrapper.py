@@ -35,7 +35,7 @@ thispath=pathlib.Path(__file__).parent.parent.absolute()
 
 # Siblings
 from ..utilities.dom import dom
-from ..utilities.freeProxyRotator import scrappedProxyList
+#from ..utilities.freeProxyRotator import scrappedProxyList
 
 class Scrapper():
 
@@ -202,7 +202,7 @@ class Scrapper():
 		
 		if self.main_strc["Next"]["Selector"]:
 			self.nexts += 1
-			print(self.max_nexts, self.nexts, self.max_nexts == 0 or  self.nexts < self.max_nexts)
+			#print(self.max_nexts, self.nexts, self.max_nexts == 0 or  self.nexts < self.max_nexts)
 			if  self.max_nexts == 0 or  self.nexts < self.max_nexts:
 				try:
 					self.main_strc["Next"]["Elements"] = WebDriverWait(self.driver,2).until(expected.element_to_be_clickable((By.CSS_SELECTOR, '{}'.format(self.main_strc["Next"]["Selector"]))))
