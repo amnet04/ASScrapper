@@ -22,7 +22,7 @@ proxy_list2 = {"url":"https://www.proxynova.com/proxy-server-list/elite-proxies/
 
 def test():
     print("\n\n")
-    prv = Scrapper("Prv", 
+    prv = Scrapper("AlphabetINC", 
                    [{"URL":"https://www.google.com/search?q=coronavirus&tbm=nws","PARAM":"Coronavirus"},
                     {"URL":"https://www.google.com/search?q='Alvaro Uribe'&tbm=nws","PARAM":"Alvaro Uribe"}], 
                    "/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/GoogleNews.csv",

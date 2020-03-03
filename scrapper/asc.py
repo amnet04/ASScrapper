@@ -2,7 +2,8 @@ import logging
 import csv
 from time import sleep
 import timeit
-from os import path, makedirs, get_terminal_size
+from os import path, makedirs
+from shutil import get_terminal_size
 import datetime
 import random
 import validators.url
@@ -43,7 +44,7 @@ class Scrapper():
 				 urls,
 				 str_file,
 				 test_url = "https://www.gelbukh.com/nlplinks.html", 
-				 data_folder = "{}/scrapped/name/".format(thispath),
+				 data_folder = "{}/scrapped".format(thispath),
 				 proxy = False,
 				 headless= False, 
 				 wait=1,
@@ -53,7 +54,7 @@ class Scrapper():
 		self.urls =  urls
 		self.str_file = str_file
 		self.test_url = test_url
-		self.datafolder = data_folder
+		self.data_folder = "{}/{}".format(data_folder,self.name)
 		self.proxy = proxy
 		self.headless = headless
 		self.wait = wait
@@ -105,11 +106,22 @@ class Scrapper():
 			self.firefox_profile.set_preference('media.encoder.webm.enabled',False)
 			self.firefox_profile.set_preference('media.ffmpeg.enabled',False)
 			self.firefox_profile.set_preference('media.flac.enabled',False)
-			self.firefox_profile.update_preferences()          
+			self.firefox_profile.update_preferences()
+
+	def createDataFile(self):
+		try:
+			if not path.isdir(self.data_folder):
+				makedirs(self.data_folder)
+			if not path.isfile(self.data_file):
+				with open(self.data_file, "w") as datafile:
+					writer = csv.DictWriter(datafile, delimiter="\t", fieldnames=list(self.data_strc.keys()))
+					writer.writeheader()
+		except:
+			raise
 	
 	def crawl(self):
 		print("\n")
-		print(''.center(80, '*'))
+		print(''.center(get_terminal_size()[0], '*'))
 		print('---> Comenzando el crawling <--- '.center(get_terminal_size()[0], '*'))
 		try:
 			self.driver = Firefox(capabilities=self.firefox_capabilities, 
@@ -121,10 +133,12 @@ class Scrapper():
 			start_time = timeit.default_timer()
 			total_urls = len(self.urls)
 			for enum, url in enumerate(self.urls):
-				print(url)
+				filename = url["PARAM"].replace(" ","")
+				self.data_file = "{}/{}.csv".format(self.data_folder,filename)
+				self.createDataFile()
 				elapsed = float("{0:.2f}".format(timeit.default_timer() - start_time))
 				percent = float("{0:.2f}".format(enum/total_urls))
-				print('---> Url {} de {}, porcentaje {}\t {} segundos'.format(enum, total_urls, percent,elapsed),
+				print('---> Url {} de {}, porcentaje {}\t {} segundos'.format(enum+1, total_urls, percent,elapsed),
 					 end = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\r")
 				self.url = url
 				self.navigate()
@@ -132,33 +146,75 @@ class Scrapper():
 		except:
 			raise
 		print("---> Crawling finalizado <---".center(get_terminal_size()[0], '*'))
-		print(''.center(80, '*'))
+		print(''.center(get_terminal_size()[0], '*'))
 		print("\n")
 
 	def navigate(self):
-		self.nexts = 0
 		try:
 			self.driver.get(self.url["URL"])
+			self.check_containers()
 			self.get_data()
+			self.nexts = 0
 			self.next()
 		except:
 			raise
 
+	def check_containers(self):
+		try:
+			WebDriverWait(self.driver, 30).until(expected.visibility_of_element_located((By.CSS_SELECTOR, '{}'.format(self.main_strc["LiCont"]["Selector"]))))
+			self.main_strc["LiCont"]["Elements"] = self.driver.find_elements_by_css_selector('{}'.format(self.main_strc["LiCont"]["Selector"]))
+			self.main_strc["ElCont"]["Elements"] = []
+		
+			if self.main_strc["LiCont"]["Elements"] != []:
+				for element in self.main_strc["LiCont"]["Elements"]:
+					self.main_strc["ElCont"]["Elements"] += element.find_elements_by_css_selector('{}'.format(self.main_strc["ElCont"]["Selector"]))
+
+		except:
+			raise
+
+
 	def get_data(self):
-		self.data = 2
+		try:
+			if self.main_strc["ElCont"]["Elements"] != []:   
+				for element in self.main_strc["ElCont"]["Elements"]:
+					data_dict = {}
+					for key, selector in self.data_strc.items(): 
+						elements = element.find_elements_by_css_selector('{}'.format(selector["Selector"]))
+						data_dict[key] = ""
+						if key == "Link":
+							data_dict[key] += elements[0].get_attribute('href')
+						else:
+							if len(elements) > 1:
+								for e in elements:
+									data_dict[key] += "<e>"+e.text+"</e>"
+							elif len(elements)==1:
+								data_dict[key] = elements[0].text
+						
+							
+					with open(self.data_file, "a") as datafile:
+						if "".join(list(data_dict.values())) != "":
+							writer = csv.DictWriter(datafile, delimiter="\t", fieldnames=list(self.data_strc.keys()))
+							writer.writerow(data_dict)
+		except:
+			raise
 
 	def next(self):
 		
 		if self.main_strc["Next"]["Selector"]:
+			self.nexts += 1
+			print(self.max_nexts, self.nexts, self.max_nexts == 0 or  self.nexts < self.max_nexts)
 			if  self.max_nexts == 0 or  self.nexts < self.max_nexts:
 				try:
 					self.main_strc["Next"]["Elements"] = WebDriverWait(self.driver,2).until(expected.element_to_be_clickable((By.CSS_SELECTOR, '{}'.format(self.main_strc["Next"]["Selector"]))))
 					wait = random.randrange(5,10)
 					sleep(wait)
 					self.main_strc["Next"]["Elements"].click()
+					self.check_containers()
+					self.get_data()
+					self.next()
 				except:
 					raise
-				self.nexts += 1
+				
 			
 
 			
