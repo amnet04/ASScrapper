@@ -16,31 +16,24 @@ proxy_list1 = {"url":"https://free-proxy-list.net/",
                             "str_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/free-proxy-list-dot_net.csv",
                             "out_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/free-proxy-list.csv"}
 
-proxy_list2 = {"url":"https://www.proxynova.com/proxy-server-list/elite-proxies", 
-                "str_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/proxynova.csv",
-                "out_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/proxynova.csv"} 
+proxy_list2 = ["https://www.proxynova.com/proxy-server-list/elite-proxies/", 
+               "proxynova", 
+               "/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/proxynova.csv",
+               "/home/sarnahorn/Programacion/Doctorado/asscrapper/proxies/",
+               False
+               ] 
 
 def test():
-    proxylist = scrappedProxyList(
-        [{"URL":"https://www.proxynova.com/proxy-server-list/elite-proxies/", "PARAM":"proxynova"}],
-        "/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/proxynova.csv",
-        "/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/",
-        max_nexts=0
-        ) 
-
-    print(proxylist.getUtilProxies())
-
-
-
-"""
-    print("\n\n")
+    print()
     prv = Scrapper("AlphabetINC", 
                    [{"URL":"https://www.google.com/search?q=coronavirus&tbm=nws","PARAM":"Coronavirus"},
                     {"URL":"https://www.google.com/search?q='Alvaro Uribe'&tbm=nws","PARAM":"Alvaro Uribe"}], 
                    "/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/GoogleNews.csv",
-                   proxy = False,
+                   proxy = proxy_list2,
                    max_nexts = 3)
 
+
+"""
 def rotate_proxy(prv):
     
     try:
@@ -72,10 +65,7 @@ def rotate_proxy(prv):
 def test_url():
 
     proxylist = proxyRotator()
-    
-    
     urls = urlsGenerator("'Alphabet Inc'", ['2019-01-01','2020-02-25'])
-
     prv =  Scrapper("GoogleNews_2019_01_01",
                     "", 
                     headless=False, 
@@ -87,8 +77,8 @@ def test_url():
     for url in urls:
         print("URL: ", url)
         prv.url = url
-        rotate_proxy(prv)
-"""
+        rotate_proxy(prv)"""
+
 
     
     
