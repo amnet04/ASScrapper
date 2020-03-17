@@ -15,7 +15,6 @@ class scrappedProxyList():
 
 	def __init__(self, url,strc_file, data_folder, headless=True, max_nexts=1):
 		print("\n ************************** Obteniendo listado de proxies ************* \n")
-		
 		dom_strc = dom(strc_file, ["Ip", "Port", "Country", "Anonymity"])
 		self.data_strc = dom_strc.data_strc
 		self.url = url
@@ -23,8 +22,7 @@ class scrappedProxyList():
 		self.data_folder = data_folder
 		self.headless = headless
 		self.max_nexts = max_nexts
-		self.fields = ['Ip', 'Port', 'Country', 'Anonymity', 'Functionality']
-		del dom_strc
+		self.fields = ["Ip", "Port", "Country", "Anonymity", "Functionality"]
 
 		self.scrapProxyLits()
 		self.list = self.getUtilProxies()
@@ -33,7 +31,7 @@ class scrappedProxyList():
 
 	def scrapProxyLits(self):
 		print("************************** Scrapeando proxys")
-		prv = asscrapper.Scrapper("ProxyList", 
+		prv = asscrapper.Scrapper("proxies", 
                    self.url, 
                    self.strc_file,
                    proxy = False,
@@ -41,19 +39,16 @@ class scrappedProxyList():
                    headless = self.headless,
                    max_nexts = self.max_nexts)
 
-		file = "{}ProxyList/{}.csv".format(self.data_folder,self.url[0]["PARAM"])
-		#todo}}}}}}}
-		with open(file, 'r') as csvfile, tempfile:
+		self.file = "{}/{}.csv".format(prv.data_folder,self.url[0]["PARAM"])
+
+		tempfile = NamedTemporaryFile(mode='w', delete=False)
+		with open(self.file, 'r') as csvfile, tempfile:
 			reader = csv.DictReader(csvfile, fieldnames=self.fields, delimiter="\t")
 			writer = csv.DictWriter(tempfile, fieldnames=self.fields, delimiter="\t")
 			for row in reader:
-				#print([row['Ip'], row['Port']], [Ip, '{}'.format(Port)], [row['Ip'], row['Port']] == [Ip, '{}'.format(Port)])
-				if [row['Ip'], row['Port']] == [proxy["Ip"], proxy["Port"]]:
-					print("Cachada")
-					row['Functionality'] = functionality
+				row['Functionality'] = "Not_Tested"
 				writer.writerow(row)
-
-		shutil.move(tempfile.name, file)
+		shutil.move(tempfile.name, self.file)
 
 
 		print("**************************  Fin del scrap de proxys")
@@ -61,20 +56,18 @@ class scrappedProxyList():
 
 	def getUtilProxies(self):
 		print("************************** Obteniendo proxys váldos")
-		file = "{}ProxyList/{}.csv".format(self.data_folder,self.url[0]["PARAM"])
-		with open(file, 'r') as csvfile:
+		with open(self.file, 'r') as csvfile:
 			reader = csv.DictReader(csvfile, fieldnames=self.fields, delimiter="\t")
 			ProxiList = [dict(a) for a in reader]
 			utilProxiList = list(filter(lambda x : x["Functionality"] not in ["TimeOut","SomethingGoesWrong"], ProxiList))
 			return utilProxiList
-		print("************************** Proxies válidos obtenido")
+		print("************************** Proxies válidos obtenidos")
 
 	def modificateFunctionality(self, proxy, functionality):
 		print("************************** Modificando estado del proxy: {}".format(proxy["Ip"]))
 		tempfile = NamedTemporaryFile(mode='w', delete=False)
-		file = "{}ProxyList/{}.csv".format(self.data_folder,self.url[0]["PARAM"])
 
-		with open(file, 'r') as csvfile, tempfile:
+		with open(self.file, 'r') as csvfile, tempfile:
 			reader = csv.DictReader(csvfile, fieldnames=self.fields, delimiter="\t")
 			writer = csv.DictWriter(tempfile, fieldnames=self.fields, delimiter="\t")
 			for row in reader:
@@ -84,5 +77,5 @@ class scrappedProxyList():
 					row['Functionality'] = functionality
 				writer.writerow(row)
 
-		shutil.move(tempfile.name, file)
+		shutil.move(tempfile.name, self.file)
 		print("************************** Estado del proxy: {} modificado ".format(proxy["Ip"]))

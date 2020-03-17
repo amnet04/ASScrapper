@@ -16,10 +16,9 @@ proxy_list1 = {"url":"https://free-proxy-list.net/",
                             "str_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/free-proxy-list-dot_net.csv",
                             "out_file":"/home/sarnahorn/Programacion/Doctorado/asscrapper/scrapped/free-proxy-list.csv"}
 
-proxy_list2 = ["https://www.proxynova.com/proxy-server-list/elite-proxies/", 
-               "proxynova", 
+proxy_list2 = [[{"URL":"https://www.proxynova.com/proxy-server-list/elite-proxies/","PARAM":"Proxynova"}], 
                "/home/sarnahorn/Programacion/Doctorado/asscrapper/examples/proxynova.csv",
-               "/home/sarnahorn/Programacion/Doctorado/asscrapper/proxies/",
+               "/home/sarnahorn/Programacion/Doctorado/asscrapper",
                False
                ] 
 

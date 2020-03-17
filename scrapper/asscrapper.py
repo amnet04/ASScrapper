@@ -72,36 +72,17 @@ class Scrapper():
 
 	def set_proxylist(self):
 		if self.proxy:
+			print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ ",self.proxy[0][0])
 			try:
-				self.proxy_list = scrappedProxyList([{"URL":self.proxy[0], 
-													  "PARAM":self.proxy[1]}],
-													   self.proxy[2],													
-													   self.proxy[3],
-													   self.proxy[4]
+				self.proxy_list = scrappedProxyList([{"URL":self.proxy[0][0]["URL"], 
+													 "PARAM":self.proxy[0][0]["PARAM"]}],
+													 self.proxy[1],													
+													 self.proxy[2],
+													 self.proxy[3]
 												)
 			except ValueError as e:
 				print (e)
 
-	def set_proxy(self):
-		print("*************************************************************************")
-		print("****************************Seteando proxy*******************************")
-		print("*************************************************************************")
-		if self.proxy_list:
-			self.driver.execute("SET_CONTEXT", {"context": "chrome"})
-			self.actual_proxy = self.proxy_list.getUtilProxies()[0]
-			print(">>>>>>>>>>>>>>>>>>>>>>>>>", self.actual_proxy)
-			try:
-				self.driver.execute_script("""
-				  Services.prefs.setIntPref('network.proxy.type', 1);
-				  Services.prefs.setCharPref("network.proxy.http", arguments[0]);
-				  Services.prefs.setIntPref("network.proxy.http_port", arguments[1]);
-				  Services.prefs.setCharPref("network.proxy.ssl", arguments[2]);
-				  Services.prefs.setIntPref("network.proxy.ssl_port", arguments[3]);
-				  """, self.actual_proxy["Ip"],self.actual_proxy["Port"],self.actual_proxy["Ip"],self.actual_proxy["Port"])
-
-			finally:
-				self.driver.execute("SET_CONTEXT", {"context": "content"})
-				self.test_proxy()
 
 	def set_dom(self):
 		dom_strc = dom(self.str_file)
@@ -237,13 +218,33 @@ class Scrapper():
 					self.next()
 				except:
 					raise
+
+	def set_proxy(self):
+		print("*************************************************************************")
+		print("****************************Seteando proxy*******************************")
+		print("*************************************************************************")
+		if self.proxy_list:
+			self.driver.execute("SET_CONTEXT", {"context": "chrome"})
+			self.actual_proxy = self.proxy_list.getUtilProxies()[0]
+			print(">>>>>>>>>>>>>>>>>>>>>>>>>", self.actual_proxy)
+			try:
+				self.driver.execute_script("""
+				  Services.prefs.setIntPref('network.proxy.type', 1);
+				  Services.prefs.setCharPref("network.proxy.http", arguments[0]);
+				  Services.prefs.setIntPref("network.proxy.http_port", arguments[1]);
+				  Services.prefs.setCharPref("network.proxy.ssl", arguments[2]);
+				  Services.prefs.setIntPref("network.proxy.ssl_port", arguments[3]);
+				  """, self.actual_proxy["Ip"],self.actual_proxy["Port"],self.actual_proxy["Ip"],self.actual_proxy["Port"])
+
+			finally:
+				self.driver.execute("SET_CONTEXT", {"context": "content"})
+				self.test_proxy()
 				
 			
 	def test_proxy(self):
 		if self.actual_proxy:
-			print("!!!! > Testing {}".format(self.actual_proxy["Ip"]))
+			print("!!!! > Testing {} {}".format(self.actual_proxy["Ip"],self.test_url))
 			try:
-				self.driver.quit()
 				self.driver.set_page_load_timeout(10)
 				self.driver.get(self.test_url)
 				self.proxy_list.modificateFunctionality(self.actual_proxy, "Worked")
@@ -252,7 +253,6 @@ class Scrapper():
 				print("-- {} no fue capas de conectarse en 10 segundos".format(self.actual_proxy["Ip"]))	
 				self.proxy_list.modificateFunctionality(self.actual_proxy, "TimeOut")
 				self.set_proxy()
-				self.test_proxy()
 			except WebDriverException as e:
 				self.driver.quit()
 				print("-- {} no fue capas de conectarse en 10 segundos".format(self.actual_proxy["Ip"]))	
@@ -260,10 +260,8 @@ class Scrapper():
 				self.configure_driver()
 				self.driver = Firefox(capabilities=self.firefox_capabilities, options=self.options, firefox_profile=self.firefox_profile, executable_path='geckodriver')
 				print("Algo salio mal: {}".format(e))	
-				self.set_proxy()
-				self.test_proxy()										
+				self.set_proxy()									
 			print("!!!! > Tested {}".format(self.actual_proxy["Ip"]))
-			
 
 		
 
