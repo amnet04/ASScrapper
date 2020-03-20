@@ -1,25 +1,18 @@
 import csv
+from asscrapper import logger
 
 class dom():
 
     def __init__(self, strc_file, data_fields=[]):
 
-        print("\n")
-        print(''.center(80, '*'))
-        print('---> Configurando el dom <--- '.center(80, '*'))
         self.filename = strc_file
         self.strc_fields = ["LiCont", "ElCont", "Next", "End", "Captcha"]
         self.data_fields = data_fields
         self.main_strc = {}
         self.data_strc = {}
         self.check_strc()
-        print("---> Dom configurado     <---".center(80, '*'))
-        print(''.center(80, '*'))
-        print("\n")
-
 
     def check_strc(self):
-        print("---> Chequeando estructura")
         try:
             with open(self.filename, "r") as csvfile:
                 data_strc = csv.DictReader(csvfile, delimiter="\t")
@@ -51,5 +44,5 @@ class dom():
 
         except IOError as e:
             raise(e)
-        print("---> Estructura chequeada")
+
 

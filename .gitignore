@@ -11,6 +11,7 @@
 data/
 dbases/
 scrapped/
+proxies/
 urls_*.txt
 
 # Ignore csv, tsv,  sqlite files

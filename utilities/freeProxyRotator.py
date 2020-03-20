@@ -2,9 +2,11 @@ import random
 import csv
 from tempfile import NamedTemporaryFile
 import shutil
+from time import sleep
 
 from ..utilities.dom import dom
-from ..scrapper import asscrapper
+from asscrapper import logger
+from asscrapper import asscrapper as assc
 
 import pathlib
 thispath=pathlib.Path(__file__).parent.parent.absolute()
@@ -14,7 +16,7 @@ FILE = "{}/{}".format(thispath,"proxies")
 class scrappedProxyList():
 
 	def __init__(self, url,strc_file, data_folder, headless=True, max_nexts=1):
-		print("\n ************************** Obteniendo listado de proxies ************* \n")
+		logger.info("Getting the list of proxies from: {}".format(url[0]["URL"]))
 		dom_strc = dom(strc_file, ["Ip", "Port", "Country", "Anonymity"])
 		self.data_strc = dom_strc.data_strc
 		self.url = url
@@ -23,15 +25,20 @@ class scrappedProxyList():
 		self.headless = headless
 		self.max_nexts = max_nexts
 		self.fields = ["Ip", "Port", "Country", "Anonymity", "Functionality"]
+		self.file = "{}/proxies/{}.csv".format(self.data_folder,self.url[0]["PARAM"])
 
 		self.scrapProxyLits()
 		self.list = self.getUtilProxies()
-		print("\n ************************** Listado de proxies obtenido *************** \n")
+		logger.info("{} proxies found".format(len(self.list)))
 		
-
+		
 	def scrapProxyLits(self):
-		print("************************** Scrapeando proxys")
-		prv = asscrapper.Scrapper("proxies", 
+		try:
+			with open(self.file, "w") as f:
+				f.write("\t".join(self.fields)+"\n")
+		except:
+			raise
+		prv = assc.Scrapper("proxies", 
                    self.url, 
                    self.strc_file,
                    proxy = False,
@@ -39,43 +46,29 @@ class scrappedProxyList():
                    headless = self.headless,
                    max_nexts = self.max_nexts)
 
-		self.file = "{}/{}.csv".format(prv.data_folder,self.url[0]["PARAM"])
-
-		tempfile = NamedTemporaryFile(mode='w', delete=False)
-		with open(self.file, 'r') as csvfile, tempfile:
-			reader = csv.DictReader(csvfile, fieldnames=self.fields, delimiter="\t")
-			writer = csv.DictWriter(tempfile, fieldnames=self.fields, delimiter="\t")
-			for row in reader:
-				row['Functionality'] = "Not_Tested"
-				writer.writerow(row)
-		shutil.move(tempfile.name, self.file)
-
-
-		print("**************************  Fin del scrap de proxys")
-
 
 	def getUtilProxies(self):
-		print("************************** Obteniendo proxys váldos")
 		with open(self.file, 'r') as csvfile:
-			reader = csv.DictReader(csvfile, fieldnames=self.fields, delimiter="\t")
-			ProxiList = [dict(a) for a in reader]
-			utilProxiList = list(filter(lambda x : x["Functionality"] not in ["TimeOut","SomethingGoesWrong"], ProxiList))
-			return utilProxiList
-		print("************************** Proxies válidos obtenidos")
+			reader = csv.DictReader(csvfile, delimiter="\t")
+			ProxyList = [dict(a) for a in reader]
+			if len(ProxyList) < 1:
+				sleep(1)
+				self.getUtilProxies()
+		utilProxyList = list(filter(lambda x : x["Functionality"] in ["Worked", "", None], ProxyList))
+		logger.info("{} util proxies found of {}".format(len(utilProxyList), len(ProxyList)))
+		return utilProxyList
 
 	def modificateFunctionality(self, proxy, functionality):
-		print("************************** Modificando estado del proxy: {}".format(proxy["Ip"]))
 		tempfile = NamedTemporaryFile(mode='w', delete=False)
-
+		self.getUtilProxies()
 		with open(self.file, 'r') as csvfile, tempfile:
-			reader = csv.DictReader(csvfile, fieldnames=self.fields, delimiter="\t")
+			reader = csv.DictReader(csvfile, delimiter="\t")
 			writer = csv.DictWriter(tempfile, fieldnames=self.fields, delimiter="\t")
+			writer.writeheader()
 			for row in reader:
-				#print([row['Ip'], row['Port']], [Ip, '{}'.format(Port)], [row['Ip'], row['Port']] == [Ip, '{}'.format(Port)])
 				if [row['Ip'], row['Port']] == [proxy["Ip"], proxy["Port"]]:
-					print("Cachada")
+					logger.info("Changing functionality of {} to {}".format(row['Ip'], functionality))
 					row['Functionality'] = functionality
 				writer.writerow(row)
-
 		shutil.move(tempfile.name, self.file)
-		print("************************** Estado del proxy: {} modificado ".format(proxy["Ip"]))
+
