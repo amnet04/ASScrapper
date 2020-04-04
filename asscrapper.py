@@ -24,13 +24,13 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.proxy import Proxy, ProxyType
 
 
+# Siblings
+from asscrapper.utilities.dom import dom
+from asscrapper import logger
+
 import pathlib
 thispath=pathlib.Path(__file__).parent.parent.absolute()
 
-# Siblings
-from asscrapper.utilities.dom import dom
-from asscrapper.utilities import freeProxyRotator as fpr
-from asscrapper import logger
 
 
 class Scrapper():
@@ -56,6 +56,7 @@ class Scrapper():
 		self.wait = wait
 		self.max_nexts = max_nexts
 		self.proxy_list = False
+		self.actual_proxy = False
 
 		self.data = []
 		self.previus_data = []
@@ -63,26 +64,8 @@ class Scrapper():
 		self.tread = False
 
 		self.set_dom()
-		self.set_proxylist()
 		self.configure_driver()
 		self.crawl()
-
-
-	def set_proxylist(self):
-		if self.proxy:
-			try:
-				self.proxy_list = fpr.scrappedProxyList([{"URL":self.proxy[0][0]["URL"], 
-													 "PARAM":self.proxy[0][0]["PARAM"]}],
-													 self.proxy[1],													
-													 self.proxy[2],
-													 self.proxy[3]
-												)
-				if not self.tread:
-					self.tread = True
-					threading.Timer(60.0, self.proxy_list.scrapProxyLits).start()
-
-			except ValueError as e:
-				print (e)
 
   		
 	def set_dom(self):
@@ -168,18 +151,37 @@ class Scrapper():
 			if self.main_strc["LiCont"]["Elements"] != []:
 				for element in self.main_strc["LiCont"]["Elements"]:
 					self.main_strc["ElCont"]["Elements"] += element.find_elements_by_css_selector('{}'.format(self.main_strc["ElCont"]["Selector"]))
+
+			if self.actual_proxy:
+				self.proxy_list.modificateFunctionality(self.actual_proxy, "WorkInObjetive")
+
 		
 		except TimeoutException as e:
 			print("---> Nos cacharon")
-			self.proxy_list.modificateFunctionality(self.actual_proxy, "MayBeCatched")
-			self.set_proxy()
+
+			if self.actual_proxy:
+				self.proxy_list.modificateFunctionality(self.actual_proxy, "MayBeCatched")
+				self.set_proxy()
+			try:
+				self.driver.close()
+				self.navigate(self)
+			except:
+				self.navigate(self)
+				pass
+
+			
 		
 		except WebDriverException as e:
 			print("---> Ni idea que pasó")
-			self.proxy_list.modificateFunctionality(self.actual_proxy, "SomethingGoesWrong2")
-			self.configure_driver()
-			self.driver = Firefox(capabilities=self.firefox_capabilities, options=self.options, firefox_profile=self.firefox_profile, executable_path='geckodriver')
-			self.set_proxy()									
+			if self.actual_proxy:
+				self.proxy_list.modificateFunctionality(self.actual_proxy, "SomethingGoesWrong2")
+				self.set_proxy()
+			try:
+				self.driver.close()
+				self.navigate(self)
+			except:
+				self.navigate(self)
+				pass									
 
 
 	def get_data(self):
